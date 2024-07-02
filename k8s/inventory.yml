@@ -1,0 +1,59 @@
+# Deployment for hotel-inventory-service
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hotel-inventory-deployment
+  labels:
+    app: hotel
+    type: inventory
+spec:
+  template:
+    metadata:
+      name: hotel-inventory-pod
+      labels:
+        app: hotel
+        type: inventory
+    spec:
+      containers:
+        - name: hotel-inventory-container
+          image: govindarajcs/hotel-inventory:1.0.0
+          ports:
+            - containerPort: 9000
+          env:
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: http://10.1.1.231:8761/eureka
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://10.1.1.230:3306/hotel_inventory
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "root"
+            - name: SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT
+              value: org.hibernate.dialect.MySQL5InnoDBDialect
+            - name: SPRING_JPA_HIBERNATE_DDLAUTO
+              value: update
+            - name: SPRING_CONFIG_IMPORT
+              value: optional:configserver:http://10.1.1.127:8000
+            
+  replicas: 1
+  selector:
+    matchLabels:
+      type: inventory
+
+---
+# Service for inventory microservice
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory
+spec:
+  type: NodePort
+  ports:
+    - targetPort: 9000
+      port: 80
+      nodePort: 31195
+  selector:
+    app: hotel
+    type: inventory

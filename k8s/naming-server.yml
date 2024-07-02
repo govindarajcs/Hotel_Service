@@ -1,0 +1,47 @@
+# Deployment for hotel-naming-service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hotel-naming-deployment
+  labels:
+    app: hotel
+    type: naming-service
+spec:
+  template:
+    metadata:
+      name: hotel-naming-pod
+      labels:
+        app: hotel
+        type: naming-service
+    spec:
+      containers:
+        - name: hotel-naming-container
+          image: govindarajcs/hotel-naming-server:1.0.0
+          ports:
+            - containerPort: 8761
+          env:
+            - name: EUREKA.CLIENT.CLIENT.REGISTERWITHEUREKA
+              value: "true"
+  replicas: 1
+  selector:
+    matchLabels:
+      type: naming-service
+
+---
+# Service for hotel-naming-service
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: hotel-naming-service
+spec:
+  type: NodePort
+  ports:
+    - targetPort: 8761
+      port: 80
+      nodePort: 31190
+  selector:
+    app: hotel
+    type: naming-service
+
+---

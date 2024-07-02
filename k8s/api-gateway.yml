@@ -1,0 +1,58 @@
+# Deployment for hotel-config server
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hotel-gateway-deployment
+  labels:
+    app: hotel
+    type: gateway-service
+spec:
+  template:
+    metadata:
+      name: hotel-gateway-pod
+      labels:
+        app: hotel
+        type: gateway-service
+    spec:
+      containers:
+        - name: hotel-gateway-container
+          image: govindarajcs/hotel-api-gateway:1.0.0
+          ports:
+            - containerPort: 8765
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: path
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: http://10.1.1.231:8761/eureka
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_0_URI
+              value: http://10.1.1.232:9000
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_0_ID
+              value: hotel-service
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0_
+              value: Path= /hotel/**
+
+  replicas: 1
+  selector:
+    matchLabels:
+      type: gateway-service
+
+---
+# Service for hotel config
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: hotel-gateway-service
+spec:
+  type: NodePort
+  ports:
+    - targetPort: 8765
+      port: 80
+      nodePort: 31194
+  selector:
+    app: hotel
+    type: gateway-service
+ 
+ 
+---

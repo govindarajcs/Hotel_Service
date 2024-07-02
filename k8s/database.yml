@@ -1,0 +1,53 @@
+# Deployment for mysql database
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hotel-db-deployment
+  labels:
+    app: hotel
+    type: database-service
+spec:
+  template:
+    metadata:
+      name: hotel-database-pod
+      labels:
+        app: hotel
+        type: database-service
+    spec:
+      containers:
+        - name: hotel-database-container
+          image: mysql
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: root
+          volumeMounts:
+            - mountPath: "/var/lib/mysql"
+              name: db-volume
+      volumes:
+        - name: db-volume
+          hostPath:
+            path: "/mnt/d/MySQL/Data"
+  replicas: 1
+  selector:
+    matchLabels:
+      type: database-service
+
+---
+# Service for hotel database
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: hotel-db-service
+spec:
+  type: NodePort
+  ports:
+    - targetPort: 3306
+      port: 80
+      nodePort: 31192
+  selector:
+    app: hotel
+    type: database-service

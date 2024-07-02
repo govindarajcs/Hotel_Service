@@ -1,0 +1,50 @@
+# Deployment for hotel-config server
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hotel-config-deployment
+  labels:
+    app: hotel
+    type: config-service
+spec:
+  template:
+    metadata:
+      name: hotel-config-pod
+      labels:
+        app: hotel
+        type: config-service
+    spec:
+      containers:
+        - name: hotel-config-container
+          image: govindarajcs/hotel-config-server:1.0.0
+          ports:
+            - containerPort: 8000
+          env:
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: http://10.1.1.132:8761/eureka
+
+  replicas: 1
+  selector:
+    matchLabels:
+      type: config-service
+
+---
+# Service for hotel config
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: hotel-config-service
+spec:
+  type: NodePort
+  ports:
+    - targetPort: 8000
+      port: 80
+      nodePort: 31191
+  selector:
+    app: hotel
+    type: database-service
+ 
+ 
+---
